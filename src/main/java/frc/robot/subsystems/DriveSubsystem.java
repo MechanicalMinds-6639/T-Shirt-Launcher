@@ -1,20 +1,22 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Value;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 // import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants;
 
 
-public class DriveSubsystem {
+public class DriveSubsystem extends SubsystemBase {
 
-//ALL CODE TAKEN FROM 2023 CHARGED UP SEASON CODE
+//MOST CODE TAKEN FROM 2023 CHARGED UP SEASON CODE
 
 /** Creates a new DriveSubsystem. */
 
@@ -31,10 +33,6 @@ public class DriveSubsystem {
 
   //private final CANcoder fleft;
   //private final CANcoder fright;
-
-  private boolean isShift = false;
-
-  private final DoubleSolenoid gearShfit;
 
   public DriveSubsystem() {
     left1 = new WPI_VictorSPX(Constants.DriveMotors.LEFT1);
@@ -56,17 +54,14 @@ public class DriveSubsystem {
     right1.setInverted(true);
     right3.setInverted(true);
 
-    gearShfit = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, Constants.PCMDevices.GEAR_SHIFT_FORWARD, Constants.PCMDevices.GEAR_SHIFT_BACKWARD);
-
     MotorControllerGroup left = new MotorControllerGroup(left1, left2, left3);
     MotorControllerGroup right = new MotorControllerGroup(right1, right2, right3);
 
     mDrive = new DifferentialDrive(left, right);
 
-    gearShfit.set(DoubleSolenoid.Value.kForward);
   }
 
-  public void drive (double forward, double clockwise){
+  public void drive(double forward, double clockwise){
     // Correction factor calculation
     double x = forward * correction;
     clockwise = clockwise + x;
@@ -77,25 +72,12 @@ public class DriveSubsystem {
     }
     mDrive.arcadeDrive(forward, clockwise); 
   }
-
-  public void shift() {
-    gearShfit.toggle();
-    if (isShift == false) {
-      isShift = true;
-      SmartDashboard.putString("Gear Shift", "Low Gear"); //TODO: Set this stuff correctly
-    } else {
-      isShift = false;
-      SmartDashboard.putString("Gear Shift", "High Gear");
-    }
-  }
-
-  public void shiftInit() {
-    gearShfit.set(DoubleSolenoid.Value.kForward);
-    SmartDashboard.putString("Gear Shift", "High Gear (init)");
-  }
-
-  public boolean getShift() {
-    return isShift;
+ 
+  public Command driveCommand(CommandXboxController driveController) {
+    return run(() -> {
+      //If turning is inverted, make driveController.getLeftX() neagative -> -driveController.getLeftX()
+      mDrive.arcadeDrive(driveController.getLeftY(), driveController.getLeftX());
+    });
   }
 
   public void periodic() {

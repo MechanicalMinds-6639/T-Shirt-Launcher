@@ -34,5 +34,7 @@ public final class Constants {
       public static final int WRIST_FORWARD = 4;
       public static final int WRIST_BACKWARD = 5;
   }
+
+  public static final int CONTROLLER = 0;
   
 }
